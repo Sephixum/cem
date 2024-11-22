@@ -76,9 +76,7 @@ consteval auto Q_rsqrt(const floating_t auto x) noexcept {
         } else if constexpr (std::same_as<type_t, const double>) {
             return std::uint64_t{0x5fe6eb50c7b537a9};
         } else {
-            static_assert(std::same_as<float, type_t> ||
-                              std::same_as<double, type_t>,
-                          "Unsupported floating type");
+            throw "Unsupported floating type";
         }
     }();
 
