@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <ranges>
 #include <type_traits>
@@ -70,7 +71,7 @@ consteval auto Q_rsqrt(const floating_t auto x) noexcept {
     constexpr static const type_t half = 0.5;
     constexpr static const type_t three_halfs = 0.5 * 3;
 
-    constexpr static const auto magic = []() -> auto {
+    constexpr static const auto magic = std::invoke([]() {
         if constexpr (std::same_as<type_t, const float>) {
             return std::uint32_t{0x5f3759df};
         } else if constexpr (std::same_as<type_t, const double>) {
@@ -78,7 +79,7 @@ consteval auto Q_rsqrt(const floating_t auto x) noexcept {
         } else {
             throw "Unsupported floating type";
         }
-    }();
+    });
 
     constexpr auto compute_rsqrt = [](auto bit_value, auto input) -> type_t {
         bit_value = magic - (bit_value >> 1);
