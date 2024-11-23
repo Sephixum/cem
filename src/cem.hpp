@@ -68,8 +68,9 @@ consteval auto sqrt(const floating_t auto x) noexcept {
 
 consteval auto Q_rsqrt(const floating_t auto x) noexcept {
     using type_t = decltype(x);
-    constexpr static const type_t half = 0.5;
-    constexpr static const type_t three_halfs = 0.5 * 3;
+
+    static constexpr type_t half = 0.5;
+    static constexpr type_t three_halfs = 0.5 * 3;
 
     constexpr static const auto magic = std::invoke([]() {
         if constexpr (std::same_as<type_t, const float>) {
@@ -81,14 +82,20 @@ consteval auto Q_rsqrt(const floating_t auto x) noexcept {
         }
     });
 
-    constexpr auto compute_rsqrt = [](auto bit_value, auto input) -> type_t {
-        bit_value = magic - (bit_value >> 1);
-        type_t y = std::bit_cast<type_t>(bit_value);
-        return y * (three_halfs - (input * half * y * y));
-    };
-
     auto bit_value = std::bit_cast<decltype(magic)>(x);
-    return compute_rsqrt(bit_value, x);
+
+    return std::invoke(
+        [](auto bit_value, auto input) -> type_t {
+            bit_value = magic - (bit_value >> 1);
+
+            using mutable_type_t = std::remove_const_t<type_t>;
+            mutable_type_t y = std::bit_cast<type_t>(bit_value);
+
+            y = y * (three_halfs - (input * half * y * y));
+            y = y * (three_halfs - (input * half * y * y));
+            return y;
+        },
+        bit_value, x);
 }
 
 consteval auto are_approximately_equal(const numeric_t auto computed,
